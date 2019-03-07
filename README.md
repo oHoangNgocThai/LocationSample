@@ -82,4 +82,105 @@ Có 2 phương thức cho phép bạn thay đổi khoảng thời gian tính to�
     * Sử dụng `setNotificationResponsiveness()` vượt qua giá trị 5 phút. Tuy nhiên hãy cân nhắc sử dụng giá trị 10 phút nếu ứng dụng của bạn có thể quản lý độ trễ thêm trong khả năng phản hồi.
     > Một ứng dụng có thể đăng ký tối đa 100 genfences mỗi lần. Trong trường hợp muốn theo dõi số lượng lớn các địa điểm, nên cân nhắc việc theo dõi các địa điểm lơn ở cấp thành phố chẳng hạn.
 * Cập nhật vị trí trong background mà không có thành phần hiển thị: Việc này phải dử dụng đến PRIORITY_NO_POWER vì gần như không sử dụng đến pin nếu có thể, còn không thì cũng phải sử dụng PRIORITY_BALANCED_POWER_ACCURACY hoặc PRIORITY_LOW_POWER. Nếu cần thêm dữ liệu vị trí nên sử dụng thêm phương thức `setFastestInterval` để thụ động lắng nghe ứng dụng khác. Có thể sử dụng phương thức `setInterval()` 10 phút thì hãy để `setMaxWaitTime()` với giá trị từ 30 đến 60 phút.
-   
+
+## Geocoding in Map
+
+> Đây là dịch vụ của Google hỗ trợ việc chuyển đổi địa lý thành kinh độ và vĩ độ, ngược lại chuyển bất kì kinh độ và vĩ độ nào thành các địa chỉ tương ứng.
+
+### Thêm Google Map vào project
+1. Thêm dependency vào file build.gradle app-level như sau:
+
+```
+implementation 'com.google.android.gms:play-services-maps:16.1.0'
+implementation 'com.google.android.gms:play-services-places:16.0.0'
+``` 
+2. Cấu hình AndroidManifest.xml
+
+Thêm các quyền cần thiết để Google Map sử dụng.
+```
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.INTERNET"/>
+```
+Thêm thẻ meta-data để sử dụng google api key
+
+```
+<meta-data
+    android:name="com.google.android.geo.API_KEY"
+    android:value="@string/google_maps_key"/>
+```
+3. Tạo thêm file `google_maps_api.xml` trong thư mục value để lưu trữ api key cũng như hướng dẫn tạo key trên google console
+
+```
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=19:B6:91:30:95:D4:1F:A0:B8:0E:A6:3E:0C:98:B1:94:4B:1D:05:E3%3Bandroid.thaihn.locationsample
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    19:B6:91:30:95:D4:1F:A0:B8:0E:A6:3E:0C:98:B1:94:4B:1D:05:E3
+
+    SHA-1 certificate fingerprint:
+    19:B6:91:30:95:D4:1F:A0:B8:0E:A6:3E:0C:98:B1:94:4B:1D:05:E3
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">AIzaSy...</string>
+</resources>
+```
+
+4. Tạo project trên Google console
+ 
+ * Truy cập vào https://console.developers.google.com/ và chọn project hoặc tạo mới project.
+ * Sau khi xong bước trên, google console sẽ tạo cho bạn 1 key mới. Cần vào đó rồi thêm package name và SHA-1 để ứng dụng có thể build được khi sử dụng key đó. Key này sẽ được điền vào bước 3.
+ * Tiếp đó truy cập **APIs & Services/Library**, tại đây enable API **Máp SDK for Android** hoặc các API tương ứng cần sử dụng.
+
+5. Xây dựng Activity chứa Google Map
+
+* Trong file giao diện xml, thêm thẻ **fragment** như sau: 
+```
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/map"
+    tools:context=".MapsActivity"
+    android:name="com.google.android.gms.maps.SupportMapFragment" />
+```
+
+* Trong Activity xử lý hiển thị Map đơn giản như sau:
+
+```
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+
+    private GoogleMap mMap;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_maps);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Add a marker in Sydney, Australia, and move the camera.
+        LatLng sydney = new LatLng(-34, 151);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+}
+```
