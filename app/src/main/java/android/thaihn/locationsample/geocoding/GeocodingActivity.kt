@@ -1,22 +1,33 @@
 package android.thaihn.locationsample.geocoding
 
 import android.databinding.DataBindingUtil
+import android.location.Geocoder
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.locationsample.R
 import android.thaihn.locationsample.databinding.ActivityGeocodingBinding
+import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
-class GeocodingActivity : AppCompatActivity(), OnMapReadyCallback {
+class GeocodingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapClickListener {
+
+    companion object {
+        private const val TAG = "GeocodingActivity"
+    }
 
     private lateinit var mMap: GoogleMap
+    private var mMarker: Marker? = null
 
     private lateinit var geocodingBinding: ActivityGeocodingBinding
+
+    private val defaultLocation = LatLng(21.017320501362633, 105.78358800000001)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +50,50 @@ class GeocodingActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        mMap.setOnMapClickListener(this)
+
+        addMarker(defaultLocation, mMap)
+    }
+
+    override fun onMapClick(latLng: LatLng?) {
+        latLng?.let {
+            addMarker(latLng, mMap)
+            val address = getAddressFromLocation(latLng.latitude, latLng.longitude)
+            geocodingBinding.tvResult.text = address
+        }
+    }
+
+    private fun addMarker(latLng: LatLng, googleMap: GoogleMap) {
+        mMarker?.remove()
+
+        val markerOptions = MarkerOptions().position(latLng)
+                .snippet("Lat: ${latLng.latitude} - Long: ${latLng.longitude}")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                .title("I'm here")
+
+        mMarker = googleMap.addMarker(markerOptions)
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15F))
+        googleMap.animateCamera(CameraUpdateFactory.zoomIn())
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(15F), 2000, null)
+    }
+
+    // Get address from latitude and longitude
+    private fun getAddressFromLocation(latitude: Double, longitude: Double): StringBuilder {
+        val geocoder = Geocoder(this)
+        val results = StringBuilder()
+        val maxResult = 10
+
+        val listAddress = geocoder.getFromLocation(latitude, longitude, maxResult)
+
+        if (listAddress.size > 0) {
+            listAddress.forEachIndexed { index, address ->
+                val strAddress = StringBuilder()
+                Log.d(TAG, "address: $address")
+                strAddress.append("${address.featureName},${address.countryName},${address.adminArea}")
+                results.append("---").append(strAddress).append(System.getProperty("line.separator"))
+            }
+        }
+        return results
     }
 }

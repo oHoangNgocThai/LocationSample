@@ -142,7 +142,7 @@ Thêm thẻ meta-data để sử dụng google api key
  
  * Truy cập vào https://console.developers.google.com/ và chọn project hoặc tạo mới project.
  * Sau khi xong bước trên, google console sẽ tạo cho bạn 1 key mới. Cần vào đó rồi thêm package name và SHA-1 để ứng dụng có thể build được khi sử dụng key đó. Key này sẽ được điền vào bước 3.
- * Tiếp đó truy cập **APIs & Services/Library**, tại đây enable API **Máp SDK for Android** hoặc các API tương ứng cần sử dụng.
+ * Tiếp đó truy cập **APIs & Services/Library**, tại đây enable API **Maps SDK for Android** hoặc các API tương ứng cần sử dụng.
 
 5. Xây dựng Activity chứa Google Map
 
@@ -181,6 +181,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+}
+```
+
+### Lấy địa chỉ từ Location có sẵn
+* Class Geocoder cung cấp cho chúng ta phương thức lấy được các địa điểm từ một vị trí có sẵn `latitude` và `longitude` cũng như là lấy được tọa độ từ tên của địa điểm đó.
+* Thực hiện lấy được class Address từ Location như sau:
+```
+private fun getAddressFromLocation(latitude: Double, longitude: Double): StringBuilder {
+    val geocoder = Geocoder(this)
+    val results = StringBuilder()
+    val maxResult = 10
+    
+    val listAddress = geocoder.getFromLocation(latitude, longitude, maxResult)
+
+    if (listAddress.size > 0) {
+        listAddress.forEachIndexed { index, address ->
+            val strAddress = StringBuilder()
+            Log.d(TAG, "address: $address")
+            strAddress.append("${address.featureName},${address.countryName},${address.adminArea}")
+            results.append("---").append(strAddress).append(System.getProperty("line.separator"))
+        }
+    }
+    return results
+}
+```
+> Đối với trường hợp này, chúng ta lấy nhiều nhất là 10 địa chỉ có thể đúng của vị trí cần xác định. Object Address trả về có thể lấy thêm được nhiều trường khác như `locality`, `adminArea`, `countryName`, ...
+
+* Bạn có thể sử dụng event map click để lấy ra được vị trí click sau đó tìm tên cho địa điểm đó như sau:
+
+```
+override fun onMapClick(latLng: LatLng?) {
+    latLng?.let {
+        addMarker(latLng, mMap)
+        val address = getAddressFromLocation(latLng.latitude, latLng.longitude)
+        geocodingBinding.tvResult.text = address
     }
 }
 ```
