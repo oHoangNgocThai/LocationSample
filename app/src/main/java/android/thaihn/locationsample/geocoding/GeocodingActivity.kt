@@ -36,6 +36,13 @@ class GeocodingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnM
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        geocodingBinding.btnFind.setOnClickListener {
+            val name = geocodingBinding.edtInput.text.toString().trim()
+            val result = getLocationFromName(name)
+            geocodingBinding.tvResult.text = result
+        }
+
     }
 
     /**
@@ -92,6 +99,27 @@ class GeocodingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnM
                 Log.d(TAG, "address: $address")
                 strAddress.append("${address.featureName},${address.countryName},${address.adminArea}")
                 results.append("---").append(strAddress).append(System.getProperty("line.separator"))
+            }
+        }
+        return results
+    }
+
+    private fun getLocationFromName(name: String): StringBuilder {
+        val geocoder = Geocoder(this)
+        val maxResult = 10
+        val listAddress = geocoder.getFromLocationName(name, maxResult)
+
+        val results = StringBuilder()
+
+        if (listAddress.size > 0) {
+            listAddress.forEachIndexed { index, address ->
+                val strAddress = StringBuilder()
+                Log.d(TAG, "address: $address")
+                strAddress.append("${address.featureName},${address.countryName},${address.adminArea}")
+                results.append("---").append(strAddress).append(System.getProperty("line.separator"))
+                // update map
+                val targetLocation = LatLng(address.latitude, address.longitude)
+                addMarker(targetLocation, mMap)
             }
         }
         return results

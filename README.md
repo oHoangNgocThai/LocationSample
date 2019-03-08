@@ -185,9 +185,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 }
 ```
 
-### Lấy địa chỉ từ Location có sẵn
+### Lấy địa điểm từ Location có sẵn
 * Class Geocoder cung cấp cho chúng ta phương thức lấy được các địa điểm từ một vị trí có sẵn `latitude` và `longitude` cũng như là lấy được tọa độ từ tên của địa điểm đó.
-* Thực hiện lấy được class Address từ Location như sau:
+* Thực hiện lấy được class Address từ Location bằng cách sử dụng phương thức `getFromLocation` của Geocoder:
 ```
 private fun getAddressFromLocation(latitude: Double, longitude: Double): StringBuilder {
     val geocoder = Geocoder(this)
@@ -208,6 +208,7 @@ private fun getAddressFromLocation(latitude: Double, longitude: Double): StringB
 }
 ```
 > Đối với trường hợp này, chúng ta lấy nhiều nhất là 10 địa chỉ có thể đúng của vị trí cần xác định. Object Address trả về có thể lấy thêm được nhiều trường khác như `locality`, `adminArea`, `countryName`, ...
+Nếu muốn chính xác đúng địa điểm thì phải check lại xem các gía trị trả về kia có gần nhất so với giá trị ban đầu mình muốn chọn không.
 
 * Bạn có thể sử dụng event map click để lấy ra được vị trí click sau đó tìm tên cho địa điểm đó như sau:
 
@@ -220,3 +221,29 @@ override fun onMapClick(latLng: LatLng?) {
     }
 }
 ```
+
+### Lấy địa điểm từ tìm kiếm tên của địa điểm
+* Sử dụng phương thức `getFromLocationName` để lấy ra địa điểm có tên mình đã tìm kiếm:
+```
+private fun getLocationFromName(name: String): StringBuilder {
+    val geocoder = Geocoder(this)
+    val maxResult = 10
+    val listAddress = geocoder.getFromLocationName(name, maxResult)
+
+    val results = StringBuilder()
+
+    if (listAddress.size > 0) {
+        listAddress.forEachIndexed { index, address ->
+        val strAddress = StringBuilder()
+        Log.d(TAG, "address: $address")
+        strAddress.append("${address.featureName},${address.countryName},${address.adminArea}")
+        results.append("---").append(strAddress).append(System.getProperty("line.separator"))
+        // update map
+        val targetLocation = LatLng(address.latitude, address.longitude)
+        addMarker(targetLocation, mMap)
+        }
+    }
+    return results
+}
+```
+> Việc tìm kiếm địa điểm theo tên cũng sẽ gặp nhiều hạn chế, bởi vậy trong phương thức `getFromLocationName` cũng có thêm vài tham số đầu vào nữa như `lowerLeftLatitude`, `lowerLeftLongitude`, `upperRightLatitude`, `upperRightLongitude` nhằm giới hạn khoảng vị trí mà mình tìm kiếm tránh bị nhầm tên.
