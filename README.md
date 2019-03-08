@@ -247,3 +247,85 @@ private fun getLocationFromName(name: String): StringBuilder {
 }
 ```
 > Việc tìm kiếm địa điểm theo tên cũng sẽ gặp nhiều hạn chế, bởi vậy trong phương thức `getFromLocationName` cũng có thêm vài tham số đầu vào nữa như `lowerLeftLatitude`, `lowerLeftLongitude`, `upperRightLatitude`, `upperRightLongitude` nhằm giới hạn khoảng vị trí mà mình tìm kiếm tránh bị nhầm tên.
+
+## Location-Base Service
+> Phần này đề cập đến việc tạo một class base của Location để sử dụng cho việc lấy dữ liệu của location ra. Việc này cũng có thể thực hiện bằng cách sử dụng network, sẽ được tìm hiểu ở phần dưới. Ở đây chúng ta sẽ tìm hiểu object `Location` trong Android.
+
+### Location
+1. Location Object
+
+Location object đại diện cho một vị trí địa lý có thể bao gồm vĩ độ(latitude), kinh độ(longitude), thời gian và các thuông tin khác như độ cao, vận tốc, ... Có các phương thức bạn có thể sử dụng để nhận được thông tin cụ thể của vị trí, dưới đây là một số phương thức cơ bản:
+* `getLatitude()`, `getLongitude()`: Thường được sử dụng nhất để lấy ra thông tin tọa độ hiện tại dưới dạng `double`. Thông tin này cũng có phương thức set giá trị vào cho nó.
+* `distanceTo(dest: Location)`: Sử dụng để trả về khoảng cách gần đúng tính bằng mét giữa vị trí này và vị trí đã cho.
+* `getAccurary()`: Trả về cho bạn độ chính xác ước tính của địa điểm này tính bằng mét. Ngoài việc có thể set được thuộc tính, những thuộc tính kiểu phụ trợ như này sẽ có thêm những hàm check xem có giá trị đó tồn tại hay không bằng hàm `hasAccurary`. 
+* `getAltitude()`, `getBearing`, `getSpeed`: Đây cũng là những thông tin tùy chọn nên sẽ có hàm set và hàm has để kiểu tra giá trị.
+
+2. Get current location
+
+* Để lấy được vị trí hiện tại, bạn nên tạo một đối tượng của Location Object sau đó kết nối với Location Services sử dụng phương thức `connect()` và sau đó là lấy ra vị trí bằng cách sử dụng `getLastLocation()`. Phương thức này trả về vị trí gần đây nhất dưới dạng location object chứa tọa độ và các thông tin khác. Việc này cần phải sử dụng  2 interface:
+    * `GooglePlayServicesClient.ConnectionCallbacks`
+    * `GooglePlayServicesClient.OnConnectionFailedListener`
+
+* Sau đó implement các phương thức như `onConnected()`, `onDisconnected()`, `onConnectionFailed()` để thực hiện việc lấy ra location object.
+> Bạn nên tạo location client ở trong phương thức `onCreate()`, sau đó connect nó ở trong `onStart()` để Location Service duy trì vị trí hiện tại trong khi activity đang hoạt động. Sau đó ngắt kết nối ở phương thức `onStop()` để không duy trì vị trí hiện tại và tiết kiệm pin hơn. 
+
+3. Get update location
+
+* Để có thể nhận được những cập nhật của vị trí, bạn nên lắng nghe `Location Listener` interface để thực hiện nó. Ở đây sử dụng phương thức `onLocationChange(location: Location)` để nhận thông tin về vị trí thay đổi của dứng dụng khi thiết bị di chuyển.
+* `Location Request` object được sử dụng để yêu cầu chất lượng dịch vụ khi cập nhật vị trí từ LocationClient. Chúng ta có thể thay một số các cài đặt để cho việc request phù hợp hơn, tiết kiệm pin hơn bằng một số các phương thức sau: `setExpirationDuration(long millis)`, `setExpirationTime(long millis)`, `setFastestInterval(long millis)`, `setInterval(long millis)`, ...  
+* Hiển thị tên của địa điểm sau khi lấy được vị trí, sử dụng `Geocoder.getFromLocation()` để lấy ra được tên của vị trí hiện tại. 
+
+### GPSTracker Service
+
+> Đến đây chúng ta sẽ xây dựng một service để lấy được location dựa trên GPS hoặc là từ Network. 
+
+1. Thêm quyền truy cập LOCATION và service bên trong AndroidManifest.xml
+```
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+...
+<service
+    android:name=".locationservice.LocationService"
+    android:enabled="true" />
+```
+2. Tạo Service sử dụng LocationManager để lấy ra Location Object
+
+```
+// Kiểm tra xem các cài đặt GPS và Network có hoạt động không
+isGPSEnabled = it.isProviderEnabled(LocationManager.GPS_PROVIDER)
+isNetworkEnabled = it.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
+// Yêu cầu update location
+private fun getLocation(provider: String) {
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        // request location update
+        locationManager?.requestLocationUpdates(
+            provider,
+            LOCATION_INTERVAL,
+            LOCATION_DISTANCE,
+            this)
+
+            // get location
+            listener?.locationChange(locationManager?.getLastKnownLocation(provider))
+    }
+} 
+```
+
+* Sau khi implement interface LocationListener, các hàm được override để nhận lại những sự kiện thay đổi của Location
+```
+override fun onLocationChanged(location: Location?) {
+    listener?.locationChange(location)
+}
+
+override fun onProviderDisabled(provider: String?) {
+}
+
+override fun onProviderEnabled(provider: String?) {
+}
+
+override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+}
+``` 
+3. Nhận dữ liệu trong Activity
+* Bạn có thể sử dụng BoundService, BroadCast Receive, ... hoặc một số sự kiện khác để gửi dữ liệu location update được ra bên ngoài giao diện.
+## Google Play service location APIs
