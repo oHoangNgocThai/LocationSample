@@ -310,7 +310,12 @@ private fun getLocation(provider: String) {
     }
 } 
 ```
-
+* Như trên, Location API sử dụng 3 nguồn để cung cấp vào tham số đầu tiên của hàm `requestLocationUpdates`:
+    
+    * `LocationManager.GPS_PROVIDER`: Lấy trên dữ liệu vệ tinh về location.
+    * `LocationManager.NETWORK_PROVIDER`: Lấy dữ liệu location dựa vào cột thu sóng của mạng thiết bị kết nối vào.
+    * `LocationManager.PASSIVE_PROVIDER`: Lấy dữ liệu một cách thụ động từ các ứng dụng khác đã có dữ liệu rồi.
+    
 * Sau khi implement interface LocationListener, các hàm được override để nhận lại những sự kiện thay đổi của Location
 ```
 override fun onLocationChanged(location: Location?) {
@@ -328,4 +333,23 @@ override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
 ``` 
 3. Nhận dữ liệu trong Activity
 * Bạn có thể sử dụng BoundService, BroadCast Receive, ... hoặc một số sự kiện khác để gửi dữ liệu location update được ra bên ngoài giao diện.
+
 ## Google Play service location APIs
+> Ngoài cách sử dụng Android Location thì chúng ta còn một cách nữa chính là sử dụng Google Play Service để lấy ra được Location. API này sử dụng `Fused Location Provider` để tự lựa chọn nguồn cung cấp location phù hợp nhất và tối ưu pin. Việc test trên các thiết bị yêu cần cần có `Google Play Service`(mà gần như máy nào cũng có, nếu là máy ảo thì cần tải thêm). 
+
+### Google APIs
+* Khi bạn muốn gọi đến Google APIs được cung cấp bởi Google Play Service thì bạn bên tạo một đối tượng của `GoogleApi`. Đối tượng này tự động quản lý kết nối với các dịch vụ của Google Play, xếp thành hàng đợi khi bạn offline và thực hiện khi có kết nối.
+* Để sử dụng dịch vụ không yêu cầu `API authorization`, hãy tạo một client của `FusedLocationProviderClient` và cung cấp cho nó context cụ thể để lấy ra được location cuối cùng sử dụng của hệ thống.
+    ```
+    FusedLocationProviderClient client =
+        LocationServices.getFusedLocationProviderClient(this);
+    
+    // Get the last known location
+    client.getLastLocation()
+        .addOnCompleteListener(this, new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                // ...
+            }
+    });
+    ``` 

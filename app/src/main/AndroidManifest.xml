@@ -18,7 +18,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".locationservice.LocationActivity"></activity>
+        <activity android:name=".googleplayservice.GoogleAPIsActivity"></activity>
+        <activity android:name=".locationservice.LocationActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -35,7 +36,11 @@
             android:name=".locationservice.LocationService"
             android:enabled="true" />
 
-        <activity android:name=".geocoding.GeocodingActivity"></activity>
+        <service
+            android:name=".googleplayservice.GoogleAPIsService"
+            android:enabled="true" />
+
+        <activity android:name=".geocoding.GeocodingActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

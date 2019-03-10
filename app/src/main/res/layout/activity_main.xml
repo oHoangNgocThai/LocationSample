@@ -13,37 +13,37 @@
             android:text="Geocoding"
             android:textAllCaps="false"
             android:textSize="19sp"
-            app:layout_constraintBottom_toTopOf="@+id/btn_location_gps"
+            app:layout_constraintBottom_toTopOf="@+id/btn_location_service"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/btn_location_gps"
+            android:id="@+id/btn_location_service"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Location with GPS"
+            android:text="Location Service"
             android:textAllCaps="false"
             android:textSize="19sp"
-            app:layout_constraintBottom_toTopOf="@+id/btn_location_network"
+            app:layout_constraintBottom_toTopOf="@+id/btn_google_play_service_apis"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btn_geocoding" />
 
         <Button
-            android:id="@+id/btn_location_network"
+            android:id="@+id/btn_google_play_service_apis"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Location with NetWork"
+            android:text="Google Play Service APIs"
             android:textAllCaps="false"
             android:textSize="19sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_location_gps" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_location_service" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>
