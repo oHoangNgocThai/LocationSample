@@ -337,7 +337,7 @@ override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
 ## Google Play service location APIs
 > Ngoài cách sử dụng Android Location thì chúng ta còn một cách nữa chính là sử dụng Google Play Service để lấy ra được Location. API này sử dụng `Fused Location Provider` để tự lựa chọn nguồn cung cấp location phù hợp nhất và tối ưu pin. Việc test trên các thiết bị yêu cần cần có `Google Play Service`(mà gần như máy nào cũng có, nếu là máy ảo thì cần tải thêm). 
 
-### Google APIs
+
 * Khi bạn muốn gọi đến Google APIs được cung cấp bởi Google Play Service thì bạn bên tạo một đối tượng của `GoogleApi`. Đối tượng này tự động quản lý kết nối với các dịch vụ của Google Play, xếp thành hàng đợi khi bạn offline và thực hiện khi có kết nối.
 * Để sử dụng dịch vụ không yêu cầu `API authorization`, hãy tạo một client của `FusedLocationProviderClient` và cung cấp cho nó context cụ thể để lấy ra được location cuối cùng sử dụng của hệ thống.
     ```
@@ -352,4 +352,50 @@ override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
                 // ...
             }
     });
-    ``` 
+    ```
+* Sử dụng `LocationRequest` để thực hiện request update location:
+    ```
+    private fun createLocationRequest() {
+            mLocationRequest = LocationRequest()
+            mLocationRequest.interval = UPDATE_INTERVAL_IN_MILLISECONDS
+            mLocationRequest.fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
+            mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+    ```
+    
+* Sử dụng `LocationCallback` để lắng nghe được sự kiện cập nhật location khi có sự thay đổi vị trí hay là sau một khoảng thời gian nhất định:
+    ```
+    mLocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult?) {
+            super.onLocationResult(locationResult)
+            onNewLocation(locationResult!!.lastLocation)
+        }
+    }
+    ```
+    
+* Tiếp theo là phương thức `requestLocationUpdate()` để tiến hành gọi việc cập nhật location:
+    ```
+    fun requestLocationUpdates() {
+        Log.i(TAG, "Requesting location updates")
+        startService(Intent(applicationContext, GoogleAPIsService::class.java))
+        try {
+            mFusedLocationClient?.requestLocationUpdates(mLocationRequest,
+                mLocationCallback, Looper.myLooper())
+        } catch (unlikely: SecurityException) {
+            Log.e(TAG, "Lost location permission. Could not request updates. $unlikely")
+        }
+    }
+    ```
+    
+* Cuối cùng là `removeLocationUpdate()` nếu như không cần thiết phải lắng nghe nữa:
+    ```
+    fun removeLocationUpdates() {
+        Log.i(TAG, "Removing location updates")
+        try {
+            mFusedLocationClient?.removeLocationUpdates(mLocationCallback)
+            stopSelf()
+        } catch (unlikely: SecurityException) {
+            Log.e(TAG, "Lost location permission. Could not remove updates. $unlikely")
+        }
+    }
+    ```

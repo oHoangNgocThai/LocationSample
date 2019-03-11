@@ -83,8 +83,10 @@ class GoogleAPIsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         myReceiver?.let {
-            LocalBroadcastManager.getInstance(this).registerReceiver(it,
-                    IntentFilter(GoogleAPIsService.ACTION_BROADCAST_LOCATION))
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                it,
+                IntentFilter(GoogleAPIsService.ACTION_BROADCAST_LOCATION)
+            )
         }
     }
 
@@ -96,37 +98,45 @@ class GoogleAPIsActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(): Boolean {
-        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
     }
 
     private fun requestPermissions() {
-        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
 
         // Provide an additional rationale to the user. This would happen if the user denied the
         // request previously, but didn't check the "Don't ask again" checkbox.
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.")
             AlertDialog.Builder(this)
-                    .setTitle("Need locaiton permission")
-                    .setMessage("We need access your location permission")
-                    .setPositiveButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
-                        //Prompt the user once explanation has been shown
-                        ActivityCompat.requestPermissions(this@GoogleAPIsActivity,
-                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                REQUEST_PERMISSIONS_REQUEST_CODE)
-                    })
-                    .create()
-                    .show()
+                .setTitle("Need locaiton permission")
+                .setMessage("We need access your location permission")
+                .setPositiveButton("OK") { dialogInterface, i ->
+                    //Prompt the user once explanation has been shown
+                    ActivityCompat.requestPermissions(
+                        this@GoogleAPIsActivity,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        REQUEST_PERMISSIONS_REQUEST_CODE
+                    )
+                }
+                .create()
+                .show()
         } else {
             Log.i(TAG, "Requesting permission")
             // Request permission. It's possible this can be auto answered if device policy
             // sets the permission in a given state or the user denied the permission
             // previously and checked "Never ask again".
-            ActivityCompat.requestPermissions(this@GoogleAPIsActivity,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    REQUEST_PERMISSIONS_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                this@GoogleAPIsActivity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_PERMISSIONS_REQUEST_CODE
+            )
         }
     }
 

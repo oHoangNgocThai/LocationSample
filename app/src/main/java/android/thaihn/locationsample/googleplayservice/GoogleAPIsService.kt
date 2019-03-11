@@ -21,8 +21,8 @@ class GoogleAPIsService : Service() {
         private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS: Long = UPDATE_INTERVAL_IN_MILLISECONDS / 2
 
         val ACTION_BROADCAST_LOCATION = GoogleAPIsService::class.java.name + "LocationBroadcast"
-        val EXTRA_LATITUDE = "extra_latitude"
-        val EXTRA_LONGITUDE = "extra_longitude"
+        const val EXTRA_LATITUDE = "extra_latitude"
+        const val EXTRA_LONGITUDE = "extra_longitude"
     }
 
     private var mLocationRequest = LocationRequest()
@@ -53,9 +53,6 @@ class GoogleAPIsService : Service() {
 
         createLocationRequest()
         getLastLocation()
-
-        val handlerThread = HandlerThread(TAG)
-        handlerThread.start()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

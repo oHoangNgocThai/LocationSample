@@ -1,7 +1,10 @@
 package android.thaihn.locationsample.locationservice
 
 import android.Manifest
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.location.Location
@@ -71,10 +74,15 @@ class LocationActivity : AppCompatActivity(), LocationListenerEvent {
             unbindService(mConnection)
             mBoundService = false
         }
+        locationService?.stopUpdates()
     }
 
     private fun checkPermission(): Boolean {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+        ) {
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 // Show an explanation to the user *asynchronously* -- don't block
@@ -83,19 +91,23 @@ class LocationActivity : AppCompatActivity(), LocationListenerEvent {
                 AlertDialog.Builder(this)
                         .setTitle("Need locaiton permission")
                         .setMessage("We need access your location permission")
-                        .setPositiveButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
+                        .setPositiveButton("OK") { dialogInterface, i ->
                             //Prompt the user once explanation has been shown
-                            ActivityCompat.requestPermissions(this@LocationActivity,
+                            ActivityCompat.requestPermissions(
+                                    this@LocationActivity,
                                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                    PERMISSION_REQUEST_LOCATION)
-                        })
+                                    PERMISSION_REQUEST_LOCATION
+                            )
+                        }
                         .create()
                         .show()
             } else {
                 // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(
+                        this,
                         Array(1) { Manifest.permission.ACCESS_FINE_LOCATION },
-                        PERMISSION_REQUEST_LOCATION)
+                        PERMISSION_REQUEST_LOCATION
+                )
             }
             return false
         } else {
